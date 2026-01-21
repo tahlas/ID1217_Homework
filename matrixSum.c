@@ -132,28 +132,35 @@ void *Worker(void *arg)
 
   /* sum values in my strip */
   total = 0;
+  int minPosX = 0;
+  int minPosY = 0;
   for (i = first; i <= last; i++){
     for (j = 0; j < size; j++){
       total += matrix[i][j];
-    }
-  }
-  sums[myid] = total;
-
-  Barrier();
-  /* calculate min position */
-  int minPosX = 0;
-  int minPosY = 0;
-  for(i = first; i <= last; i++){
-    for(j = 0; j < size; j++){
       if(matrix[i][j] < matrix[minPosX][minPosY]){
         minPosX = i;
         minPosY = j;
       }
     }
   }
+  sums[myid] = total;
+
   Barrier();
-  printf("Worker %d: Min element is %d at position (%d, %d)\n", myid, matrix[minPosX][minPosY], minPosX, minPosY);
+  /* calculate min position */
+  // int minPosX = 0;
+  // int minPosY = 0;
+  // for(i = first; i <= last; i++){
+  //   for(j = 0; j < size; j++){
+  //     if(matrix[i][j] < matrix[minPosX][minPosY]){
+  //       minPosX = i;
+  //       minPosY = j;
+  //     }
+  //   }
+  // }
+  // Barrier();//not sure if this should be here
+  // printf("Worker %d: Min element is %d at position (%d, %d)\n", myid, matrix[minPosX][minPosY], minPosX, minPosY);
   printf("The minimum element is %d at position (%d, %d)\n", matrix[minPosX][minPosY], minPosX, minPosY);
+  
   if (myid == 0) {
     total = 0;
 
