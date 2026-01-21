@@ -80,21 +80,19 @@ int main(int argc, char *argv[])
   pthread_cond_init(&go, NULL);
 
   /* read command line args if any */
-  size = (argc > 1) ? atoi(argv[1]) : MAXSIZE;
-  numWorkers = (argc > 2) ? atoi(argv[2]) : MAXWORKERS;
-  if (size > MAXSIZE)
-    size = MAXSIZE;
-  if (numWorkers > MAXWORKERS)
-    numWorkers = MAXWORKERS;
-  stripSize = size / numWorkers;
+  size = (argc > 1)? atoi(argv[1]) : MAXSIZE;
+  numWorkers = (argc > 2)? atoi(argv[2]) : MAXWORKERS;
+  if (size > MAXSIZE) size = MAXSIZE;
+  if (numWorkers > MAXWORKERS) numWorkers = MAXWORKERS;
+  
+  /*matrix is parted into equal sizes between the workers*/
+  stripSize = size/numWorkers;
 
   /* initialize the matrix */
-  for (i = 0; i < size; i++)
-  {
-    for (j = 0; j < size; j++)
-    {
-      matrix[i][j] = rand()%99;
-    }
+  for (i = 0; i < size; i++) {
+	  for (j = 0; j < size; j++) {
+          matrix[i][j] = rand()%99;
+	  }
   }
 
   /* print the matrix */
@@ -134,18 +132,38 @@ void *Worker(void *arg)
 
   /* sum values in my strip */
   total = 0;
-  for (i = first; i <= last; i++)
-    for (j = 0; j < size; j++)
+  for (i = first; i <= last; i++){
+    for (j = 0; j < size; j++){
       total += matrix[i][j];
+    }
+  }
   sums[myid] = total;
+
   Barrier();
-  if (myid == 0)
-  {
+  /* calculate min position */
+  int minPosX = 0;
+  int minPosY = 0;
+  for(i = first; i <= last; i++){
+    for(j = 0; j < size; j++){
+      if(matrix[i][j] < matrix[minPosX][minPosY]){
+        minPosX = i;
+        minPosY = j;
+      }
+    }
+  }
+  Barrier();
+  printf("Worker %d: Min element is %d at position (%d, %d)\n", myid, matrix[minPosX][minPosY], minPosX, minPosY);
+  printf("The minimum element is %d at position (%d, %d)\n", matrix[minPosX][minPosY], minPosX, minPosY);
+  if (myid == 0) {
     total = 0;
-    for (i = 0; i < numWorkers; i++)
+
+    for (i = 0; i < numWorkers; i++){
       total += sums[i];
+    }
+
     /* get end time */
     end_time = read_timer();
+
     /* print results */
     printf("The total is %d\n", total);
     printf("The execution time is %g sec\n", end_time - start_time);
