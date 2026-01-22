@@ -9,58 +9,67 @@
      a.out size numWorkers
 
 */
-#ifndef _REENTRANT 
-#define _REENTRANT 
-#endif 
+#ifndef _REENTRANT
+#define _REENTRANT
+#endif
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
 #include <sys/time.h>
-#define MAXSIZE 10000  /* maximum matrix size */
-#define MAXWORKERS 10   /* maximum number of workers */
+#define MAXSIZE 10000 /* maximum matrix size */
+#define MAXWORKERS 10 /* maximum number of workers */
 
-pthread_mutex_t barrier;  /* mutex lock for the barrier */
-pthread_cond_t go;        /* condition variable for leaving */
-int numWorkers;           /* number of workers */ 
-int numArrived = 0;       /* number who have arrived */
+pthread_mutex_t barrier; /* mutex lock for the barrier */
+pthread_cond_t go;       /* condition variable for leaving */
+int numWorkers;          /* number of workers */
+int numArrived = 0;      /* number who have arrived */
 
 /* a reusable counter barrier */
-void Barrier() {
+void Barrier()
+{
   pthread_mutex_lock(&barrier);
   numArrived++;
-  if (numArrived == numWorkers) {
+  if (numArrived == numWorkers)
+  {
     numArrived = 0;
     pthread_cond_broadcast(&go);
-  } else
+  }
+  else
     pthread_cond_wait(&go, &barrier);
   pthread_mutex_unlock(&barrier);
 }
 
 /* timer */
-double read_timer() {
-    static bool initialized = false;
-    static struct timeval start;
-    struct timeval end;
-    if( !initialized )
-    {
-        gettimeofday( &start, NULL );
-        initialized = true;
-    }
-    gettimeofday( &end, NULL );
-    return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
+double read_timer()
+{
+  static bool initialized = false;
+  static struct timeval start;
+  struct timeval end;
+  if (!initialized)
+  {
+    gettimeofday(&start, NULL);
+    initialized = true;
+  }
+  gettimeofday(&end, NULL);
+  return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
 }
 
-double start_time, end_time; /* start and end times */
-int size, stripSize;  /* assume size is multiple of numWorkers */
-int sums[MAXWORKERS]; /* partial sums */
+double start_time, end_time;  /* start and end times */
+int size, stripSize;          /* assume size is multiple of numWorkers */
+int sums[MAXWORKERS];         /* partial sums */
 int matrix[MAXSIZE][MAXSIZE]; /* matrix */
+int minsRow[MAXWORKERS];
+int minsCol[MAXWORKERS];
+int maxsRow[MAXWORKERS];
+int maxsCol[MAXWORKERS];
 
 void *Worker(void *);
 
 /* read command line, initialize, and create threads */
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   int i, j;
   long l; /* use long in case of a 64-bit system */
   pthread_attr_t attr;
@@ -75,43 +84,50 @@ int main(int argc, char *argv[]) {
   pthread_cond_init(&go, NULL);
 
   /* read command line args if any */
-  size = (argc > 1)? atoi(argv[1]) : MAXSIZE;
-  numWorkers = (argc > 2)? atoi(argv[2]) : MAXWORKERS;
-  if (size > MAXSIZE) size = MAXSIZE;
-  if (numWorkers > MAXWORKERS) numWorkers = MAXWORKERS;
-  
+  size = (argc > 1) ? atoi(argv[1]) : MAXSIZE;
+  numWorkers = (argc > 2) ? atoi(argv[2]) : MAXWORKERS;
+  if (size > MAXSIZE)
+    size = MAXSIZE;
+  if (numWorkers > MAXWORKERS)
+    numWorkers = MAXWORKERS;
+
   /*matrix is parted into equal sizes between the workers*/
-  stripSize = size/numWorkers;
+  stripSize = size / numWorkers;
 
   /* initialize the matrix */
-  for (i = 0; i < size; i++) {
-	  for (j = 0; j < size; j++) {
-          matrix[i][j] = rand()%99;
-	  }
+  for (i = 0; i < size; i++)
+  {
+    for (j = 0; j < size; j++)
+    {
+      matrix[i][j] = rand() % 99;
+    }
   }
 
   /* print the matrix */
 #ifdef DEBUG
-  for (i = 0; i < size; i++) {
-	  printf("[ ");
-	  for (j = 0; j < size; j++) {
-	    printf(" %d", matrix[i][j]);
-	  }
-	  printf(" ]\n");
+  for (i = 0; i < size; i++)
+  {
+    printf("[ ");
+    for (j = 0; j < size; j++)
+    {
+      printf(" %d", matrix[i][j]);
+    }
+    printf(" ]\n");
   }
 #endif
 
   /* do the parallel work: create the workers */
   start_time = read_timer();
   for (l = 0; l < numWorkers; l++)
-    pthread_create(&workerid[l], &attr, Worker, (void *) l);
+    pthread_create(&workerid[l], &attr, Worker, (void *)l);
   pthread_exit(NULL);
 }
 
 /* Each worker sums the values in one strip of the matrix.
    After a barrier, worker(0) computes and prints the total */
-void *Worker(void *arg) {
-  long myid = (long) arg;
+void *Worker(void *arg)
+{
+  long myid = (long)arg;
   int total, i, j, first, last;
 
 #ifdef DEBUG
@@ -119,38 +135,59 @@ void *Worker(void *arg) {
 #endif
 
   /* determine first and last rows of my strip */
-  first = myid*stripSize;
+  first = myid * stripSize;
   last = (myid == numWorkers - 1) ? (size - 1) : (first + stripSize - 1);
 
   /* sum values in my strip */
+  
   total = 0;
-  for (i = first; i <= last; i++){
-    for (j = 0; j < size; j++){
+  //TODO: all workers are starting from the first row, need to fix
+  int minRow = first;
+  int minCol = 0;
+  int maxRow = first;
+  int maxCol = 0;
+  for (i = first; i <= last; i++)
+  {
+    for (j = 0; j < size; j++)
+    {
       total += matrix[i][j];
-    }
-  }
-  sums[myid] = total;
-
-  Barrier();
-  /* calculate min position */
-  int minPosX = 0;
-  int minPosY = 0;
-  for(i = first; i <= last; i++){
-    for(j = 0; j < size; j++){
-      if(matrix[i][j] < matrix[minPosX][minPosY]){
-        minPosX = i;
-        minPosY = j;
+      if (matrix[i][j] < matrix[minRow][minCol])
+      {
+        minRow = i;
+        minCol = j;
+      }
+      if(matrix[i][j] > matrix[maxRow][maxCol])
+      {
+        maxRow = i;
+        maxCol = j;
       }
     }
   }
+  
+  sums[myid] = total;
+  minsRow[myid] = minRow;
+  minsCol[myid] = minCol;
+  maxsRow[myid] = maxRow;
+  maxsCol[myid] = maxCol;
   Barrier();
-  printf("Worker %d: Min element is %d at position (%d, %d)\n", myid, matrix[minPosX][minPosY], minPosX, minPosY);
-  printf("The minimum element is %d at position (%d, %d)\n", matrix[minPosX][minPosY], minPosX, minPosY);
-  if (myid == 0) {
+  
+  if (myid == 0)
+  {
     total = 0;
 
-    for (i = 0; i < numWorkers; i++){
+    for (i = 0; i < numWorkers; i++)
+    {
       total += sums[i];
+      if (matrix[minsRow[i]][minsCol[i]] < matrix[minRow][minCol])
+      {
+        minRow = minsRow[i];
+        minCol = minsCol[i];
+      }
+      if(matrix[maxsRow[i]][maxsCol[i]] > matrix[maxRow][maxCol])
+      {
+        maxRow = maxsRow[i];
+        maxCol = maxsCol[i];
+      }
     }
 
     /* get end time */
@@ -158,6 +195,8 @@ void *Worker(void *arg) {
 
     /* print results */
     printf("The total is %d\n", total);
+    printf("The minimum element is %d at column:%d and row: %d \n", matrix[minRow][minCol], minCol, minRow);
+    printf("The maximum element is %d at column:%d and row: %d \n", matrix[maxRow][maxCol], maxCol, maxRow);
     printf("The execution time is %g sec\n", end_time - start_time);
   }
 }
