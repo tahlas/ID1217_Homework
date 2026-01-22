@@ -199,4 +199,5 @@ void *Worker(void *arg)
     printf("The maximum element is %d at column:%d and row: %d \n", matrix[maxRow][maxCol], maxCol, maxRow);
     printf("The execution time is %g sec\n", end_time - start_time);
   }
+  return NULL;
 }
