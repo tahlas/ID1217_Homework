@@ -102,12 +102,21 @@ int main(int argc, char *argv[])
 
   /* print the matrix */
 #ifdef DEBUG
+  printf("     ");
+  for (j = 0; j < size; j++)
+    printf("%3d", j);
+  printf("\n");
+
   for (i = 0; i < size; i++)
   {
-    printf("[ ");
+    printf("%3d [ ", i);
+
     for (j = 0; j < size; j++)
     {
-      printf(" %d", matrix[i][j]);
+      if (matrix[i][j] < 10)
+        printf(" %d ", matrix[i][j]);
+      else
+        printf(" %d", matrix[i][j]);
     }
     printf(" ]\n");
   }
@@ -124,8 +133,8 @@ int main(int argc, char *argv[])
   end_time = read_timer();
 
   printf("The total is: %d\n", globalSum);
-  // printf("The minimum element is: %d at row: %d and column: %d\n", globalMin, globalMinRow, globalMinCol);
-  // printf("The maximum element is: %d at row: %d and column: %d\n", globalMax, globalMaxRow, globalMaxCol);
+  printf("The minimum element is: %d at column: %d and row: %d\n", globalMin, globalMinCol, globalMinRow);
+  printf("The maximum element is: %d at column: %d and row: %d\n", globalMax, globalMaxCol, globalMaxRow);
   printf("The execution time is: %g sec\n", end_time - start_time);
 
   return 0;
@@ -144,17 +153,19 @@ void *Worker(void *arg)
 #endif
 
   /* determine first and last rows of my strip */
-  first = myid * stripSize;
-  last = (myid == numWorkers - 1) ? (size - 1) : (first + stripSize - 1);
+  // first = myid * stripSize;
+  // last = (myid == numWorkers - 1) ? (size - 1) : (first + stripSize - 1);
 
   /* sum values in row and find min/max in rows that this worker will process */
   total = 0;
+
   int minRow = -1;
   int minCol = -1;
   int maxRow = -1;
   int maxCol = -1;
-  int localMin = INT_MIN;
-  int localMax = INT_MAX;
+
+  int localMin = INT_MAX;
+  int localMax = INT_MIN;
 
   int localMinRow;
   int localMinCol;
@@ -170,6 +181,7 @@ void *Worker(void *arg)
     pthread_mutex_unlock(&rowLock);
 
     // if the row the worker is trying to process is out of bounds, exit
+    // size is the matrix size (number of rows/columns)
     if (row >= size)
     {
       break;
@@ -177,60 +189,37 @@ void *Worker(void *arg)
 
     for (j = 0; j < size; j++)
     {
-      int value = matrix[j][row];
+      int value = matrix[row][j];
       total += value;
-      if (value < matrix[minRow][minCol])
+      if (value < localMin)
       {
         localMin = value;
         minRow = row;
         minCol = j;
       }
-      if (value > matrix[maxRow][maxCol])
+      if (value > localMax)
       {
         localMax = value;
         maxRow = row;
         maxCol = j;
       }
     }
-
-    // for (i = first; i <= last; i++)
-    // {
-    //   for (j = 0; j < size; j++)
-    //   {
-    //     total += matrix[i][j];
-    //     if (matrix[i][j] < matrix[minRow][minCol])
-    //     {
-    //       minRow = i;
-    //       minCol = j;
-    //     }
-    //     if (matrix[i][j] > matrix[maxRow][maxCol])
-    //     {
-    //       maxRow = i;
-    //       maxCol = j;
-    //     }
-    //   }
-    // }
-
-    // globalSum += total;
-
-    // int localMinVal = matrix[minRow][minCol];
-    // if (localMinVal < globalMin)
-    // {
-    //   globalMin = localMinVal;
-    //   globalMinRow = minRow;
-    //   globalMinCol = minCol;
-    // }
-
-    // int localMaxVal = matrix[maxRow][maxCol];
-    // if (localMaxVal > globalMax)
-    // {
-    //   globalMax = localMaxVal;
-    //   globalMaxRow = maxRow;
-    //   globalMaxCol = maxCol;
-    // }
   }
   pthread_mutex_lock(&resultLock);
   globalSum += total;
+  if (localMin < globalMin)
+  {
+    globalMin = localMin;
+    globalMinRow = minRow;
+    globalMinCol = minCol;
+  }
+
+  if (localMax > globalMax)
+  {
+    globalMax = localMax;
+    globalMaxRow = maxRow;
+    globalMaxCol = maxCol;
+  }
   pthread_mutex_unlock(&resultLock);
   return NULL;
 }
