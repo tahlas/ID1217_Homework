@@ -21,26 +21,10 @@
 #define MAXSIZE 10000 /* maximum matrix size */
 #define MAXWORKERS 10 /* maximum number of workers */
 
-//pthread_mutex_t barrier; /* mutex lock for the barrier */
-//pthread_cond_t go;       /* condition variable for leaving */
-int numWorkers;          /* number of workers */
-//int numArrived = 0;      /* number who have arrived */
 
-/* a reusable counter barrier */
-/*void Barrier()
-{
-  pthread_mutex_lock(&barrier);
-  numArrived++;
-  if (numArrived == numWorkers)
-  {
-    numArrived = 0;
-    pthread_cond_broadcast(&go);
-  }
-  else
-    pthread_cond_wait(&go, &barrier);
-  pthread_mutex_unlock(&barrier);
-}
-*/
+int numWorkers; /* number of workers */
+
+
 /* timer */
 double read_timer()
 {
@@ -56,14 +40,9 @@ double read_timer()
   return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
 }
 
-double start_time, end_time;  /* start and end times */
-int size, stripSize;          /* assume size is multiple of numWorkers */
-//int sums[MAXWORKERS];         /* partial sums */
+double start_time, end_time; /* start and end times */
+int size, stripSize;         /* assume size is multiple of numWorkers */
 int matrix[MAXSIZE][MAXSIZE]; /* matrix */
-//int minsRow[MAXWORKERS];
-//int minsCol[MAXWORKERS];
-//int maxsRow[MAXWORKERS];
-//int maxsCol[MAXWORKERS];
 int globalSum;
 int globalMin;
 int globalMax;
@@ -88,10 +67,6 @@ int main(int argc, char *argv[])
   pthread_attr_init(&attr);
   pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
 
-  /* initialize mutex and condition variable */
-  //pthread_mutex_init(&barrier, NULL);
-  //pthread_cond_init(&go, NULL);
-
   /* read command line args if any */
   size = (argc > 1) ? atoi(argv[1]) : MAXSIZE;
   numWorkers = (argc > 2) ? atoi(argv[2]) : MAXWORKERS;
@@ -114,15 +89,15 @@ int main(int argc, char *argv[])
     }
   }
 
-pthread_mutex_init(&resultLock, NULL);
+  pthread_mutex_init(&resultLock, NULL);
 
-globalSum = 0;
-globalMin = matrix[0][0];
-globalMax = matrix[0][0];
-globalMinRow = 0;
-globalMinCol = 0;
-globalMaxRow = 0;
-globalMaxCol = 0;
+  globalSum = 0;
+  globalMin = matrix[0][0];
+  globalMax = matrix[0][0];
+  globalMinRow = 0;
+  globalMinCol = 0;
+  globalMaxRow = 0;
+  globalMaxCol = 0;
 
   /* print the matrix */
 #ifdef DEBUG
@@ -141,20 +116,18 @@ globalMaxCol = 0;
   start_time = read_timer();
   for (l = 0; l < numWorkers; l++)
     pthread_create(&workerid[l], &attr, Worker, (void *)l);
-  //pthread_exit(NULL);
 
-    for (l = 0; l < numWorkers; l++)
+  for (l = 0; l < numWorkers; l++)
     pthread_join(workerid[l], NULL);
 
-    end_time = read_timer();
+  end_time = read_timer();
 
-printf("The total is: %d\n", globalSum);
-printf("The minimum element is: %d at position (%d, %d)\n",globalMin, globalMinRow, globalMinCol);
-printf("The maximum element is: %d at position (%d, %d)\n",globalMax, globalMaxRow, globalMaxCol);
-printf("The execution time is: %g sec\n", end_time - start_time);
+  printf("The total is: %d\n", globalSum);
+  printf("The minimum element is: %d at row: %d and column: %d\n", globalMin, globalMinRow, globalMinCol);
+  printf("The maximum element is: %d at row: %d and column: %d\n", globalMax, globalMaxRow, globalMaxCol);
+  printf("The execution time is: %g sec\n", end_time - start_time);
 
-return 0;
-
+  return 0;
 }
 
 /* Each worker sums the values in one strip of the matrix.
@@ -163,10 +136,10 @@ void *Worker(void *arg)
 {
   long myid = (long)arg;
   int total, i, j, first, last;
-/**/
+  /**/
 
 #ifdef DEBUG
-  printf("worker %d (pthread id %d) has started\n", myid, pthread_self());
+  printf("worker %ld (pthread id %ld) has started\n", myid, pthread_self());
 #endif
 
   /* determine first and last rows of my strip */
@@ -174,9 +147,8 @@ void *Worker(void *arg)
   last = (myid == numWorkers - 1) ? (size - 1) : (first + stripSize - 1);
 
   /* sum values in my strip */
-  
+  /* find min/max in my strip */
   total = 0;
-  //TODO: all workers are starting from the first row, need to fix
   int minRow = first;
   int minCol = 0;
   int maxRow = first;
@@ -191,7 +163,7 @@ void *Worker(void *arg)
         minRow = i;
         minCol = j;
       }
-      if(matrix[i][j] > matrix[maxRow][maxCol])
+      if (matrix[i][j] > matrix[maxRow][maxCol])
       {
         maxRow = i;
         maxCol = j;
@@ -199,24 +171,26 @@ void *Worker(void *arg)
     }
   }
 
-pthread_mutex_lock(&resultLock);
-globalSum += total;
+  pthread_mutex_lock(&resultLock);
+  globalSum += total;
 
-int localMinVal = matrix[minRow][minCol];
-if (localMinVal < globalMin) {
-  globalMin = localMinVal;
-  globalMinRow = minRow;
-  globalMinCol = minCol;
-}
+  int localMinVal = matrix[minRow][minCol];
+  if (localMinVal < globalMin)
+  {
+    globalMin = localMinVal;
+    globalMinRow = minRow;
+    globalMinCol = minCol;
+  }
 
-int localMaxVal = matrix[maxRow][maxCol];
-if (localMaxVal > globalMax) {
-  globalMax = localMaxVal;
-  globalMaxRow = maxRow;
-  globalMaxCol = maxCol;
-}
+  int localMaxVal = matrix[maxRow][maxCol];
+  if (localMaxVal > globalMax)
+  {
+    globalMax = localMaxVal;
+    globalMaxRow = maxRow;
+    globalMaxCol = maxCol;
+  }
 
-pthread_mutex_unlock(&resultLock);
+  pthread_mutex_unlock(&resultLock);
 
   return NULL;
 }
