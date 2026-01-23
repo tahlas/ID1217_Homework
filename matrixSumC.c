@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <sys/time.h>
+#include <limits.h>
 #define MAXSIZE 10000 /* maximum matrix size */
 #define MAXWORKERS 10 /* maximum number of workers */
 
@@ -137,7 +138,6 @@ void *Worker(void *arg)
 {
   long myid = (long)arg;
   int total, i, j, first, last;
-  /**/
 
 #ifdef DEBUG
   printf("worker %ld (pthread id %ld) has started\n", myid, pthread_self());
@@ -149,10 +149,12 @@ void *Worker(void *arg)
 
   /* sum values in row and find min/max in rows that this worker will process */
   total = 0;
-  int minRow = first;
-  int minCol = 0;
-  int maxRow = first;
-  int maxCol = 0;
+  int minRow = -1;
+  int minCol = -1;
+  int maxRow = -1;
+  int maxCol = -1;
+  int localMin = INT_MIN;
+  int localMax = INT_MAX;
 
   int localMinRow;
   int localMinCol;
@@ -167,6 +169,7 @@ void *Worker(void *arg)
     nextRow++;
     pthread_mutex_unlock(&rowLock);
 
+    // if the row the worker is trying to process is out of bounds, exit
     if (row >= size)
     {
       break;
@@ -174,14 +177,17 @@ void *Worker(void *arg)
 
     for (j = 0; j < size; j++)
     {
-      total += matrix[j][row];
-      if (matrix[j][row] < matrix[minRow][minCol])
+      int value = matrix[j][row];
+      total += value;
+      if (value < matrix[minRow][minCol])
       {
+        localMin = value;
         minRow = row;
         minCol = j;
       }
-      if (matrix[j][row] > matrix[maxRow][maxCol])
+      if (value > matrix[maxRow][maxCol])
       {
+        localMax = value;
         maxRow = row;
         maxCol = j;
       }
