@@ -157,12 +157,13 @@ void *Worker(void *arg)
   // last = (myid == numWorkers - 1) ? (size - 1) : (first + stripSize - 1);
 
   /* sum values in row and find min/max in rows that this worker will process */
+  
   total = 0;
 
-  int minRow = -1;
-  int minCol = -1;
-  int maxRow = -1;
-  int maxCol = -1;
+  int minRow;
+  int minCol;
+  int maxRow;
+  int maxCol;
 
   int localMin = INT_MAX;
   int localMax = INT_MIN;
