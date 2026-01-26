@@ -5,11 +5,11 @@
 #include <pthread.h>
 #include <stdbool.h>
 
-#define ARRAY_SIZE 10
+#define MAX_ARRAY_SIZE 10000
 
 int partition(int array[], int low, int high);
 
-int array[ARRAY_SIZE];
+int array[MAX_ARRAY_SIZE];
 
 double read_timer()
 {
@@ -74,7 +74,6 @@ void *worker(void *arg)
     return NULL;
 }
 
-
 void initializeArray(int array[], int size)
 {
     for (int i = 0; i < size; i++)
@@ -106,23 +105,25 @@ void initializeAttributes(pthread_attr_t *attr)
     pthread_attr_setscope(attr, PTHREAD_SCOPE_SYSTEM);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    int arraySize = (argc > 1) ? atoi(argv[1]) : MAX_ARRAY_SIZE;
+
     pthread_attr_t attr;
     pthread_t thread;
     
     initializeAttributes(&attr);
 
-    initializeArray(array, ARRAY_SIZE);
+    initializeArray(array, arraySize);
 
     #ifdef DEBUG
     printf("Unsorted array:\n");
-    printArray(array, ARRAY_SIZE);
+    printArray(array, arraySize);
     #endif
 
     ThreadArguments* args = malloc(sizeof(ThreadArguments));
     args->low = 0;
-    args->high = ARRAY_SIZE - 1;
+    args->high = arraySize - 1;
     double start_timer = read_timer();
     pthread_create(&thread, &attr, worker, args);
     pthread_join(thread, NULL);
@@ -131,8 +132,8 @@ int main()
 
     #ifdef DEBUG
     printf("Sorted array:\n");
-    printArray(array, ARRAY_SIZE);
-    if(isSorted(array, ARRAY_SIZE)){
+    printArray(array, arraySize);
+    if(isSorted(array, arraySize)){
         printf("Array is sorted.\n");
     } else {
         printf("Array is NOT sorted.\n");
