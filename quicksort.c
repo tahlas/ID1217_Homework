@@ -7,103 +7,25 @@
 
 #define MAX_ARRAY_SIZE 10000
 
-int partition(int array[], int low, int high);
-
 int array[MAX_ARRAY_SIZE];
 
-double read_timer()
-{
-  static bool initialized = false;
-  static struct timeval start;
-  struct timeval end;
-  if (!initialized)
-  {
-    gettimeofday(&start, NULL);
-    initialized = true;
-  }
-  gettimeofday(&end, NULL);
-  return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
-}
+void initializeAttributes(pthread_attr_t *attr);
 
-//Needed to pass low and high indices to each thread
+int partition(int array[], int low, int high);
+
+void initializeArray(int array[], int size);
+
+double read_timer();
+
+void swap(int *a, int *b);
+
+void *worker(void *arg);
+
+//Needed to pass low and high indexes to each thread
 typedef struct{
     int low;
     int high;   
 } ThreadArguments;
-
-bool isSorted(int array[], int size)
-{
-    for (int i = 0; i < size - 1; i++)
-    {
-        if (array[i] > array[i + 1])
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-void *worker(void *arg)
-{
-    ThreadArguments *args = (ThreadArguments *)arg;
-
-    int low = args->low; 
-    int high = args->high;
-
-    
-    if(low < high){
-        int pivotIndex = partition(array, low, high);
-        pthread_t leftThread;
-        pthread_t rightThread;
-        ThreadArguments *leftArguments = malloc(sizeof(ThreadArguments));
-        ThreadArguments *rightArguments = malloc(sizeof(ThreadArguments));
-        leftArguments->low = low;
-        leftArguments->high = pivotIndex - 1;
-        rightArguments->low = pivotIndex + 1;
-        rightArguments->high = high;
-
-        pthread_create(&leftThread, NULL, worker, leftArguments);
-        pthread_create(&rightThread, NULL, worker, rightArguments);
-
-        pthread_join(leftThread, NULL);
-        pthread_join(rightThread, NULL);
-        free(leftArguments);
-        free(rightArguments);
-    }
-    
-    return NULL;
-}
-
-void initializeArray(int array[], int size)
-{
-    for (int i = 0; i < size; i++)
-    {
-        array[i] = rand() % 100;
-    }
-}
-
-void printArray(int array[], int size)
-{
-    printf("[");
-    for (int i = 0; i < size; i++)
-    {
-        printf("%d ", array[i]);
-    }
-    printf("]\n");
-}
-
-void swap(int *a, int *b)
-{
-    int temp = *a;
-    *a = *b;
-    *b = temp;
-}
-
-void initializeAttributes(pthread_attr_t *attr)
-{
-    pthread_attr_init(attr);
-    pthread_attr_setscope(attr, PTHREAD_SCOPE_SYSTEM);
-}
 
 int main(int argc, char *argv[])
 {
@@ -145,6 +67,74 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+void initializeAttributes(pthread_attr_t *attr)
+{
+    pthread_attr_init(attr);
+    pthread_attr_setscope(attr, PTHREAD_SCOPE_SYSTEM);
+}
+
+void initializeArray(int array[], int size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        array[i] = rand() % 100;
+    }
+}
+
+void printArray(int array[], int size)
+{
+    printf("[");
+    for (int i = 0; i < size; i++)
+    {
+        printf("%d ", array[i]);
+    }
+    printf("]\n");
+}
+
+double read_timer()
+{
+  static bool initialized = false;
+  static struct timeval start;
+  struct timeval end;
+  if (!initialized)
+  {
+    gettimeofday(&start, NULL);
+    initialized = true;
+  }
+  gettimeofday(&end, NULL);
+  return (end.tv_sec - start.tv_sec) + 1.0e-6 * (end.tv_usec - start.tv_usec);
+}
+
+void *worker(void *arg)
+{
+    ThreadArguments *args = (ThreadArguments *)arg;
+
+    int low = args->low; 
+    int high = args->high;
+
+    
+    if(low < high){
+        int pivotIndex = partition(array, low, high);
+        pthread_t leftThread;
+        pthread_t rightThread;
+        ThreadArguments *leftArguments = malloc(sizeof(ThreadArguments));
+        ThreadArguments *rightArguments = malloc(sizeof(ThreadArguments));
+        leftArguments->low = low;
+        leftArguments->high = pivotIndex - 1;
+        rightArguments->low = pivotIndex + 1;
+        rightArguments->high = high;
+
+        pthread_create(&leftThread, NULL, worker, leftArguments);
+        pthread_create(&rightThread, NULL, worker, rightArguments);
+
+        pthread_join(leftThread, NULL);
+        pthread_join(rightThread, NULL);
+        free(leftArguments);
+        free(rightArguments);
+    }
+    
+    return NULL;
+}
 
 int partition(int array[], int low, int high)
 {
@@ -164,3 +154,21 @@ int partition(int array[], int low, int high)
     return (i + 1);
 }
 
+void swap(int *a, int *b)
+{
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+bool isSorted(int array[], int size)
+{
+    for (int i = 0; i < size - 1; i++)
+    {
+        if (array[i] > array[i + 1])
+        {
+            return false;
+        }
+    }
+    return true;
+}
