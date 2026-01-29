@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     pthread_create(&workerid[l], &attr, Worker, (void *)l);
 
   for (l = 0; l < numWorkers; l++)
-    pthread_join(workerid[l], NULL);
+    pthread_join(workerid[l], NULL); // wait for all workers to finish
 
   end_time = read_timer();
 
@@ -170,7 +170,8 @@ void *Worker(void *arg)
       }
     }
   }
-
+  //Use locks because multiple threads might update 
+  //the global values simultaneously
   pthread_mutex_lock(&resultLock);
   globalSum += total;
 

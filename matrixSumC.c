@@ -164,7 +164,8 @@ void *Worker(void *arg)
   int minCol;
   int maxRow;
   int maxCol;
-
+  //we don't know what to intialize these to yet since 
+  //we don't know which rows this worker will process
   int localMin = INT_MAX;
   int localMax = INT_MIN;
 

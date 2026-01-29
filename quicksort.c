@@ -116,15 +116,19 @@ void *worker(void *arg)
     int low = args->low; 
     int high = args->high;
 
-    
+    //if this segment has more than one element
     if(low < high){
         int pivotIndex = partition(array, low, high);
+
         pthread_t leftThread;
         pthread_t rightThread;
+
         ThreadArguments *leftArguments = malloc(sizeof(ThreadArguments));
         ThreadArguments *rightArguments = malloc(sizeof(ThreadArguments));
+
         leftArguments->low = low;
         leftArguments->high = pivotIndex - 1;
+
         rightArguments->low = pivotIndex + 1;
         rightArguments->high = high;
 
@@ -133,6 +137,7 @@ void *worker(void *arg)
 
         pthread_join(leftThread, NULL);
         pthread_join(rightThread, NULL);
+        
         free(leftArguments);
         free(rightArguments);
     }
@@ -143,6 +148,9 @@ void *worker(void *arg)
 int partition(int array[], int low, int high)
 {
     int pivot = array[high];
+    //boundary for smaller elements
+    //elements on the left side of i are smaller than pivot
+    //elements on the right side of i are greater than or equal to pivot (or unprocessed)
     int i = (low - 1);
 
     for (int j = low; j <= high - 1; j++)
@@ -150,11 +158,13 @@ int partition(int array[], int low, int high)
         if (array[j] < pivot)
         {
             i++;
-            swap(&array[i], &array[j]);
+            swap(&array[i], &array[j]); //moves smaller elements to the left side
         }
     }
-
+    //swaps the pivot element to its correct position
+    //(just after all smaller elements)
     swap(&array[i + 1], &array[high]);
+    //returns the pivot index
     return (i + 1);
 }
 
