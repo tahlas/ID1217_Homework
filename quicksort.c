@@ -15,6 +15,10 @@ int partition(int array[], int low, int high);
 
 void initializeArray(int array[], int size);
 
+void printArray(int array[], int size);
+
+bool isSorted(int array[], int size);
+
 double read_timer();
 
 void swap(int *a, int *b);
