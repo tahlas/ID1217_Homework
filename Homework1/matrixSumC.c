@@ -3,7 +3,7 @@
    features: uses a barrier; the Worker[0] computes
              the total sum from partial sums computed by Workers
              and prints the total sum to the standard output
-
+ 
    usage under Linux:
      gcc matrixSum.c -lpthread
      a.out size numWorkers
