@@ -32,6 +32,8 @@ bool isSorted(int array[], int size);
 
 void printArray(int array[], int size);
 
+void startQuicksort(int array[], int size);
+
 int arraySize;
 
 int numberOfWorkers;
@@ -63,12 +65,7 @@ int main(int argc, char *argv[]) {
   
   startTime = omp_get_wtime();
   #pragma omp parallel
-  {
-    #pragma omp single
-    { 
-      quicksort(array, 0, arraySize - 1); 
-    }
-  }
+  startQuicksort(array, arraySize);
   endTime = omp_get_wtime();
 
   #ifdef DEBUG
@@ -84,6 +81,16 @@ int main(int argc, char *argv[]) {
   }
 
   printf("it took %g seconds to sort an array with the size %d and with %d workers\n", endTime - startTime, arraySize, numberOfWorkers);
+}
+
+void startQuicksort(int array[], int size) {
+  #pragma omp parallel
+  {
+    #pragma omp single
+    { 
+      quicksort(array, 0, size - 1); 
+    }
+  }
 }
 
 void quicksort(int array[], int low, int high) {
