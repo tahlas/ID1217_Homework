@@ -130,11 +130,10 @@ TaskResult task()
 }
 
 void printMatrix(){
-  int row, column;
-  for (row = 0; row < size; row++)
+  for (int row = 0; row < size; row++)
   {
     printf("[ ");
-    for (column = 0; column < size; column++)
+    for (int column = 0; column < size; column++)
     {
       printf(" %d", matrix[row][column]);
     }
