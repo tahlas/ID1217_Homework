@@ -78,22 +78,22 @@ TaskResult task()
 
   #pragma omp parallel
   {
-    int localSum = 0;
     int localMinRowPosition = 0;
     int localMaxRowPosition = 0;
     int localMinColumnPosition = 0;
     int localMaxColumnPosition = 0;
 
-    //nowait removes barrier at the end of the for loop
-    #pragma omp for nowait
+    #pragma omp for reduction(+:total)
     for(int row = 0; row < size; row++){
       for(int column = 0; column < size; column++){
         int value = matrix[row][column];
-        localSum += value;
+        total += value;
+
         if(value > matrix[localMaxRowPosition][localMaxColumnPosition]){
           localMaxRowPosition = row;
           localMaxColumnPosition = column;
         }
+
         if(value < matrix[localMinRowPosition][localMinColumnPosition]){
           localMinRowPosition = row;
           localMinColumnPosition = column;
@@ -101,9 +101,9 @@ TaskResult task()
       }
     }
     //critical ensures only one thread at a time can update the shared variables
+    //(only one thread can be in this section at a time)
     #pragma omp critical
     {
-      total+=localSum;
       if(matrix[localMinRowPosition][localMinColumnPosition] < matrix[globalMinRowPosition][globalMinColumnPosition]){
         globalMinRowPosition = localMinRowPosition;
         globalMinColumnPosition = localMinColumnPosition;
@@ -114,6 +114,7 @@ TaskResult task()
       }
     }
   }
+  //implicit barrier here - all threads must complete before proceeding
   return (TaskResult){total, globalMinRowPosition, globalMaxRowPosition, globalMinColumnPosition, globalMaxColumnPosition};
 }
 
