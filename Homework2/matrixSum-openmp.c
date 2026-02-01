@@ -4,7 +4,7 @@
      gcc -O -fopenmp -o matrixSum-openmp matrixSum-openmp.c
      ./matrixSum-openmp size numWorkers
 
-*/
+*/  
 
 #include <omp.h>
 
@@ -12,6 +12,7 @@ double start_time, end_time;
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #define MAXSIZE 10000 /* maximum matrix size */
 #define MAXWORKERS 8  /* maximum number of workers */
 
@@ -31,6 +32,8 @@ typedef struct
 
 TaskResult task();
 
+void printMatrix();
+
 /* read command line, initialize, and create threads */
 int main(int argc, char *argv[])
 {
@@ -44,23 +47,17 @@ int main(int argc, char *argv[])
 
   omp_set_num_threads(numWorkers);
 
-  int row, column, total = 0;
+  int row, column;
+  srand(time(NULL));
+  
   /* initialize the matrix */
   for (row = 0; row < size; row++)
   {
-    printf("[ ");
     for (column = 0; column < size; column++)
     {
       matrix[row][column] = rand() % 99;
-      printf(" %d", matrix[row][column]);
     }
-    printf(" ]\n");
   }
-
-  int minRowPosition = 0;
-  int maxRowPosition = 0;
-  int minColumnPosition = 0;
-  int maxColumnPosition = 0;
 
   start_time = omp_get_wtime();
 
@@ -68,11 +65,11 @@ int main(int argc, char *argv[])
 
   end_time = omp_get_wtime();
 
-  total = result.total;
-  minRowPosition = result.minRowPosition;
-  maxRowPosition = result.maxRowPosition;
-  minColumnPosition = result.minColumnPosition;
-  maxColumnPosition = result.maxColumnPosition;
+  int total = result.total;
+  int minRowPosition = result.minRowPosition;
+  int maxRowPosition = result.maxRowPosition;
+  int minColumnPosition = result.minColumnPosition;
+  int maxColumnPosition = result.maxColumnPosition;
 
   printf("the total is %d\n", total);
   printf("the minimum is %d at column:%d and row: %d)\n", matrix[minRowPosition][minColumnPosition], minColumnPosition, minRowPosition);
@@ -90,25 +87,45 @@ TaskResult task()
   int maxRowPosition = 0;
   int minColumnPosition = 0;
   int maxColumnPosition = 0;
+  //reduction causes each thread to have its own copy of total and 
+  //then at the end of the parallel region all the copies are summed 
+  //together into a single value
   #pragma omp parallel for reduction(+ : total) private(row, column)
   for (row = 0; row < size; row++)
     for (column = 0; column < size; column++)
     {
       total += matrix[row][column];
 
-      if (matrix[row][column] < matrix[minRowPosition][minColumnPosition])
+      #pragma omp critical
       {
-        minRowPosition = row;
-        minColumnPosition = column;
-      }
+        if (matrix[row][column] < matrix[minRowPosition][minColumnPosition])
+        {
+          minRowPosition = row;
+          minColumnPosition = column;
+        }
 
-      if (matrix[row][column] > matrix[maxRowPosition][maxColumnPosition])
-      {
-        maxRowPosition = row;
-        maxColumnPosition = column;
+        if (matrix[row][column] > matrix[maxRowPosition][maxColumnPosition])
+        {
+          maxRowPosition = row;
+          maxColumnPosition = column;
+        }
       }
     }
-    // implicit barrier
+  // implicit barrier
 
-    return (TaskResult){total, minRowPosition, maxRowPosition, minColumnPosition, maxColumnPosition};
+  return (TaskResult){total, minRowPosition, maxRowPosition, minColumnPosition, maxColumnPosition};
+}
+
+void printMatrix()
+{
+  int row, column;
+  for (row = 0; row < size; row++)
+  {
+    printf("[ ");
+    for (column = 0; column < size; column++)
+    {
+      printf(" %d", matrix[row][column]);
+    }
+    printf(" ]\n");
+  }
 }
