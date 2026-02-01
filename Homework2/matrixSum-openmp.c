@@ -21,6 +21,7 @@ int size;
 int matrix[MAXSIZE][MAXSIZE];
 void *Worker(void *);
 
+//helper struct to hold results
 typedef struct
 {
   int total;
@@ -40,10 +41,12 @@ int main(int argc, char *argv[])
   /* read command line args if any */
   size = (argc > 1) ? atoi(argv[1]) : MAXSIZE;
   numWorkers = (argc > 2) ? atoi(argv[2]) : MAXWORKERS;
-  if (size > MAXSIZE)
+  if (size > MAXSIZE){
     size = MAXSIZE;
-  if (numWorkers > MAXWORKERS)
+  }
+  if (numWorkers > MAXWORKERS){
     numWorkers = MAXWORKERS;
+  }
 
   omp_set_num_threads(numWorkers);
 
@@ -92,6 +95,8 @@ TaskResult task()
     int localMaxColumnPosition = 0;
 
     //nowait removes barrier at the end of the for loop
+    //each thread doesn't need to wait for others to finish before proceeding
+    //to the critical section
     #pragma omp for nowait
     for(int row = 0; row < size; row++){
       for(int column = 0; column < size; column++){
@@ -108,6 +113,7 @@ TaskResult task()
       }
     }
     //critical ensures only one thread at a time can update the shared variables
+    //(only one thread can be in this section at a time)
     #pragma omp critical
     {
       total+=localSum;
