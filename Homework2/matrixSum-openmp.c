@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
   {
     for (column = 0; column < size; column++)
     {
-      matrix[row][column] = rand() % 99;
+      matrix[row][column] = rand() % size;
     }
   }
 
