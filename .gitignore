@@ -6,3 +6,9 @@ a.out
 tee
 *.txt
 quicksort
+
+Homework1/*
+Homework2/*
+!Homework1/*.c
+!Homework2/*.c
+!Homework1/*.txt
