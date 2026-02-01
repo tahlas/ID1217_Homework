@@ -77,45 +77,54 @@ int main(int argc, char *argv[])
 
 TaskResult task()
 {
-  // runs the loop in parallel
-  // use reduction to sum up the total from each thread
-  // make row and column private to each thread
-  int row, column, total = 0;
-  int minRowPosition = 0;
-  int maxRowPosition = 0;
-  int minColumnPosition = 0;
-  int maxColumnPosition = 0;
-  //reduction causes each thread to have its own copy of total and 
-  //then at the end of the parallel region all the copies are summed 
-  //together into a single value
-  #pragma omp parallel for reduction(+ : total) private(row, column)
-  for (row = 0; row < size; row++)
-    for (column = 0; column < size; column++)
-    {
-      total += matrix[row][column];
+  int total = 0;
+  int globalMinRowPosition = 0;
+  int globalMaxRowPosition = 0;
+  int globalMinColumnPosition = 0;
+  int globalMaxColumnPosition = 0;
 
-      #pragma omp critical
-      {
-        if (matrix[row][column] < matrix[minRowPosition][minColumnPosition])
-        {
-          minRowPosition = row;
-          minColumnPosition = column;
+  #pragma omp parallel
+  {
+    int localSum = 0;
+    int localMinRowPosition = 0;
+    int localMaxRowPosition = 0;
+    int localMinColumnPosition = 0;
+    int localMaxColumnPosition = 0;
+
+    //nowait removes barrier at the end of the for loop
+    #pragma omp for nowait
+    for(int row = 0; row < size; row++){
+      for(int column = 0; column < size; column++){
+        int value = matrix[row][column];
+        localSum += value;
+        if(value > matrix[localMaxRowPosition][localMaxColumnPosition]){
+          localMaxRowPosition = row;
+          localMaxColumnPosition = column;
         }
-
-        if (matrix[row][column] > matrix[maxRowPosition][maxColumnPosition])
-        {
-          maxRowPosition = row;
-          maxColumnPosition = column;
+        if(value < matrix[localMinRowPosition][localMinColumnPosition]){
+          localMinRowPosition = row;
+          localMinColumnPosition = column;
         }
       }
     }
-  // implicit barrier
-
-  return (TaskResult){total, minRowPosition, maxRowPosition, minColumnPosition, maxColumnPosition};
+    //critical ensures only one thread at a time can update the shared variables
+    #pragma omp critical
+    {
+      total+=localSum;
+      if(matrix[localMinRowPosition][localMinColumnPosition] < matrix[globalMinRowPosition][globalMinColumnPosition]){
+        globalMinRowPosition = localMinRowPosition;
+        globalMinColumnPosition = localMinColumnPosition;
+      }
+      if(matrix[localMaxRowPosition][localMaxColumnPosition] > matrix[globalMaxRowPosition][globalMaxColumnPosition]){
+        globalMaxRowPosition = localMaxRowPosition;
+        globalMaxColumnPosition = localMaxColumnPosition;
+      }
+    }
+  }
+  return (TaskResult){total, globalMinRowPosition, globalMaxRowPosition, globalMinColumnPosition, globalMaxColumnPosition};
 }
 
-void printMatrix()
-{
+void printMatrix(){
   int row, column;
   for (row = 0; row < size; row++)
   {
