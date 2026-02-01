@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
   int row, column;
   srand(time(NULL));
-  
+
   /* initialize the matrix */
   for (row = 0; row < size; row++)
   {
@@ -59,21 +59,19 @@ int main(int argc, char *argv[])
     }
   }
 
+  #ifdef DEBUG
+    printMatrix();
+  #endif
+
   start_time = omp_get_wtime();
 
-  TaskResult result = task();
+  TaskResult r = task();
 
   end_time = omp_get_wtime();
 
-  int total = result.total;
-  int minRowPosition = result.minRowPosition;
-  int maxRowPosition = result.maxRowPosition;
-  int minColumnPosition = result.minColumnPosition;
-  int maxColumnPosition = result.maxColumnPosition;
-
-  printf("the total is %d\n", total);
-  printf("the minimum is %d at column:%d and row: %d)\n", matrix[minRowPosition][minColumnPosition], minColumnPosition, minRowPosition);
-  printf("the maximum is %d at column:%d and row: %d)\n", matrix[maxRowPosition][maxColumnPosition], maxColumnPosition, maxRowPosition);
+  printf("the total is %d\n", r.total);
+  printf("the maximum is %d at column:%d and row: %d\n", matrix[r.maxRowPosition][r.maxColumnPosition], r.maxColumnPosition, r.maxRowPosition);
+  printf("the minimum is %d at column:%d and row: %d\n", matrix[r.minRowPosition][r.minColumnPosition], r.minColumnPosition, r.minRowPosition);
   printf("it took %g seconds\n", end_time - start_time);
 }
 
