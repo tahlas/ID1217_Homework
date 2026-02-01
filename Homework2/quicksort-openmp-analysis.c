@@ -4,8 +4,8 @@
          Please refer to quicksort-openmp.c for the actual implementation.
 
    usage with gcc (version 4.2 or higher required):
-     gcc -O -fopenmp -o quicksort-openmp quicksort-openmp.c
-     ./quicksort-openmp size numberOfWorkers
+     gcc -O -fopenmp -o quicksort-openmp-analysis quicksort-openmp-analysis.c
+     ./quicksort-openmp-analysis size numberOfWorkers
 */
 
 #include <omp.h>
@@ -59,16 +59,19 @@ int main(int argc, char *argv[]) {
   }
   omp_set_num_threads(numberOfWorkers);
 
-  for(int j = 1; j <= 3; j++){
-    for(int i = 1; i <= 5; i++){
-        initializeArray(array, arraySize*j);
+  double times[5];
+  for(int j = 0; j < 3; j++){
+    for(int i = 0; i < 5; i++){
+        initializeArray(array, arraySize);
         startTime = omp_get_wtime();
-        startQuicksort(array, arraySize*j);
+        startQuicksort(array, arraySize);
         endTime = omp_get_wtime();
-        printf("%g seconds | size %d | %d workers\n", endTime - startTime, arraySize*j, numberOfWorkers);
+        times[i] = endTime - startTime;
+        printf("%g seconds | size %d | %d workers\n", endTime - startTime, arraySize, numberOfWorkers);
     }
     printf("\n");
-  }
+    arraySize = arraySize * 2;
+  }  
 }
 
 void startQuicksort(int array[], int size) {
