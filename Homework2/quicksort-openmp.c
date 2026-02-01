@@ -64,7 +64,6 @@ int main(int argc, char *argv[]) {
   printf("Starting quicksort with %d workers on array of size %d\n", numberOfWorkers, arraySize);
   
   startTime = omp_get_wtime();
-  #pragma omp parallel
   startQuicksort(array, arraySize);
   endTime = omp_get_wtime();
 
