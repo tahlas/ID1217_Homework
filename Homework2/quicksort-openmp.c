@@ -18,6 +18,8 @@ double startTime, endTime;
 
 #define MAX_ARRAY_SIZE 100000000
 
+#define MINIMUM_PARALLEL_SIZE 10000
+
 void swap(int *a, int *b);
 
 void initializeArray(int array[], int size);
@@ -89,16 +91,23 @@ void quicksort(int array[], int low, int high) {
     int pivotIndex = partition(array, low, high);
     //shared(array) is already default
     //shared(array) is added for clarity
-    #pragma omp task shared(array)
-    { 
-      quicksort(array, low, pivotIndex - 1); 
-    }
-    #pragma omp task shared(array)
-    { 
+    int subArraySize = high - low;
+    if(subArraySize > MINIMUM_PARALLEL_SIZE) {
+      #pragma omp task shared(array)
+      { 
+        quicksort(array, low, pivotIndex - 1); 
+      }
+      #pragma omp task shared(array)
+      { 
+        quicksort(array, pivotIndex + 1, high); 
+      }
+      //parent task suspended until children tasks complete
+      #pragma omp taskwait 
+      } 
+    else {
+      quicksort(array, low, pivotIndex - 1);
       quicksort(array, pivotIndex + 1, high); 
     }
-    //parent task suspended until children tasks complete
-    #pragma omp taskwait 
   }
 }
 
@@ -124,6 +133,8 @@ int partition(int array[], int low, int high) {
 }
 
 void initializeArray(int array[], int size) {
+  srand(time(NULL));
+
   for (int i = 0; i < size; i++) {
     array[i] = rand() % size;
   }
