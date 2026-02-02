@@ -19,7 +19,6 @@ double start_time, end_time;
 int numWorkers;
 int size;
 int matrix[MAXSIZE][MAXSIZE];
-void *Worker(void *);
 
 //helper struct to hold results
 typedef struct
