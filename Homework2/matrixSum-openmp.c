@@ -125,7 +125,7 @@ TaskResult task()
       }
     }
   }
-  //implicit barrier here - all threads must complete before proceeding
+  //barrier here - all threads must complete before proceeding
   return (TaskResult){total, globalMinRowPosition, globalMaxRowPosition, globalMinColumnPosition, globalMaxColumnPosition};
 }
 
