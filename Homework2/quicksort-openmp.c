@@ -83,6 +83,7 @@ int main(int argc, char *argv[]) {
 }
 
 void startQuicksort(int array[], int size) {
+  //want threads to be created only once, not in every recursive call
   #pragma omp parallel
   {
     #pragma omp single
@@ -97,6 +98,8 @@ void quicksort(int array[], int low, int high) {
     int pivotIndex = partition(array, low, high);
     //shared(array) is already default
     //shared(array) is added for clarity
+    //each thread sees the same array, but different low and high values
+    //task creates a queue of tasks to be executed by threads 
     int subArraySize = high - low;
     if(subArraySize > MINIMUM_PARALLEL_SIZE) {
       #pragma omp task shared(array)
