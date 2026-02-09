@@ -6,9 +6,12 @@
 #include <unistd.h>
 #define SHARED 1
 
+//mutex to protect access to the dish
 sem_t mutex;
-sem_t parentSleep;
-sem_t wormsAvailable;
+//used by the baby birds to wake up the parent bird when the dish is empty
+sem_t parentSleep; 
+
+sem_t wormsAvailable; 
 
 int dish = 0;                  // w = number of worms in the dish
 int numberOfBabyBirds = 2;     // n = number of baby birds
