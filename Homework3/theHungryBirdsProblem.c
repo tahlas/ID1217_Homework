@@ -33,6 +33,8 @@ int main() {
         pthread_create(&babyBirdIds[i], &attr, babyBird, (void *)(long)i);
     }
 
+    sem_post(&parentSleep); // Intial chirp to wake up the parent bird to fill the dish for the first time
+
     pthread_join(parentBirdId, NULL);
     for (int i = 0; i < numberOfBabyBirds; i++) {
         pthread_join(babyBirdIds[i], NULL);
@@ -40,20 +42,6 @@ int main() {
 }
 
 void *parentBird(void *arg) {
-    // while (true) {
-    //     while (dish > 0) {
-    //         printf("Parent bird is sleeping because the dish is not
-    //         empty.\n"); sleep(1);
-    //     }
-
-    //     for (int i = 0; i < maximumNumberOfWorms; i++) {
-    //         sem_wait(&empty);
-    //         dish++;
-    //         printf("Parent bird added a worm. Total worms in dish: %d\n",
-    //         dish); sem_post(&full); sleep(1);
-    //     }
-    // }
-
     while (true) {
         sem_wait(&parentSleep); // wait for the chirp from the baby birds
         printf("Parent bird is waking up to fill the dish.\n");
@@ -72,15 +60,6 @@ void *parentBird(void *arg) {
 
 void *babyBird(void *arg) {
     long myId = (long)arg;
-    // while (true) {
-    //     sem_wait(&full);
-    //     if (dish > 0) {
-    //         printf("Baby bird ate worm number %d\n", dish);
-    //         dish--;
-    //         sem_post(&empty);
-    //         sleep(1);
-    //     }
-    // }
     while (true) {
         sem_wait(&wormsAvailable); // wait for a worm to be available
         sem_wait(&mutex);          // lock the dish
