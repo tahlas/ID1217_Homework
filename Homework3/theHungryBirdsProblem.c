@@ -67,10 +67,8 @@ void *babyBird(void *arg) {
         sem_wait(&wormsAvailable); // wait for a worm to be available
         sem_wait(&mutex);          // lock the dish
         if (dish > 0) {
-            printf(
-                "Baby bird %ld ate a worm. Total worms left in the dish: %d\n",
-                myId, dish - 1);
             dish--; // eat a worm
+            printf("Baby bird %ld ate a worm. Total worms left in the dish: %d\n", myId, dish);
             if (dish == 0) {
                 printf("Baby bird %ld is chirping to wake up the parent bird "
                        "because the dish is empty!\n", myId);
