@@ -14,7 +14,7 @@ sem_t parentSleep;
 sem_t wormsAvailable; 
 
 int dish = 0;                  // w = number of worms in the dish
-int numberOfBabyBirds = 2;     // n = number of baby birds
+int numberOfBabyBirds = 4;     // n = number of baby birds
 int maximumNumberOfWorms = 10; // maximum number of worms the dish can hold
 
 void *parentBird(void *);
