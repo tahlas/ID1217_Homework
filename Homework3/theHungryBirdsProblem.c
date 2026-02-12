@@ -10,7 +10,8 @@
 sem_t mutex;
 //used by the baby birds to wake up the parent bird when the dish is empty
 sem_t parentSleep; 
-
+//parent bird increments when adding a worm, and baby birds decrement 
+//when eating a worm, to keep track of the number of worms available in the dish
 sem_t wormsAvailable; 
 
 int dish = 0;                  // w = number of worms in the dish
@@ -27,8 +28,12 @@ int main() {
     pthread_attr_init(&attr);
     pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
 
-    sem_init(&mutex, SHARED, 1);
-    sem_init(&parentSleep, SHARED, 0);
+    //1 = unlocked, 0 = locked
+    sem_init(&mutex, SHARED, 1); 
+    //parent bird will sleep until a baby bird chirps to wake it up, 
+    //so we initialize it to 0
+    sem_init(&parentSleep, SHARED, 0); 
+    //intialized to zero because the dish starts with zero worms
     sem_init(&wormsAvailable, SHARED, 0);
 
     pthread_create(&parentBirdId, &attr, parentBird, NULL);
@@ -36,8 +41,10 @@ int main() {
         pthread_create(&babyBirdIds[i], &attr, babyBird, (void *)(long)i);
     }
 
-    sem_post(&parentSleep); // Intial chirp to wake up the parent bird to fill the dish for the first time
+    //Intial chirp to wake up the parent bird to fill the dish for the first time
+    sem_post(&parentSleep); 
 
+    //not necessary since threads run in an infinite loop
     pthread_join(parentBirdId, NULL);
     for (int i = 0; i < numberOfBabyBirds; i++) {
         pthread_join(babyBirdIds[i], NULL);
