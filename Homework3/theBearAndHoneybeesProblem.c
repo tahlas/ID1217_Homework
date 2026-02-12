@@ -11,6 +11,7 @@ int pot = 0;               // the current amount of honey in the pot
 int potCapacity = 10;      // H = number of portions of honey the pot can hold
 
 sem_t mutex;
+//used by the honeybees to wake up the bear when the pot is full
 sem_t wakeUpBear;
 sem_t bearSleeping; // used by the bear to signal the honeybees that it has
                     // finished eating and is going back to sleep
@@ -42,10 +43,10 @@ int main() {
 
 void *honeybee(void *arg) {
     long honeybeeId = (long)arg + 1;
-    while (true) {
+    while (true) { //makes the honeybees run indefinitely
         sem_wait(&bearSleeping); // wait for the bear to finish eating and go
                                  // back to sleep
-        while (true) {
+        while (true) { //honeybee adds honey to the pot until it is full
             sem_wait(&mutex); // lock the pot
             if (pot < potCapacity) {
                 pot++;
@@ -65,7 +66,9 @@ void *honeybee(void *arg) {
                 sleep(1);
             }
             else{
-                sem_post(&mutex); // unlock the pot
+                // unlock the pot, otherwise the bear will be stuck waiting 
+                // for the mutex to be unlocked
+                sem_post(&mutex); 
                 break; // break out of the inner loop to wait for the bear to eat
             }
         }
@@ -74,6 +77,7 @@ void *honeybee(void *arg) {
 
 void *bear(void *arg) {
     while (true) {
+        //signal ALL honeybees that the bear has finished eating and is going back to sleep,
         for (int i = 0; i < numberOfHoneybees; i++) {
             sem_post(
                 &bearSleeping); // signal the honeybees that the bear has
