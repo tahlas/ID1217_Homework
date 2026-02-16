@@ -33,7 +33,7 @@ class Dish {
 
     public synchronized void eat() {
         while(numberOfWorms == 0){
-            System.out.println("Baby bird waits for the dish to be filled.");
+            System.out.println("Baby birds wait for the dish to be filled.");
             try{
                 wait();
             } catch (InterruptedException e) {
