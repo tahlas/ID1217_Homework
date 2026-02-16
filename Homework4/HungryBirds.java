@@ -1,11 +1,11 @@
-package ID1217_Homework.Homework4;
+package Homework4;
 
 public class HungryBirds {
 
     public static void main(String[] args) {
         System.out.println("Starting the Hungry Birds simulation...");
-        int initialWorms = 5;
-        int dishCapacity = 5;
+        int initialWorms = 0;
+        int dishCapacity = 10;
         int numberOfBabyBirds = 3;
         Dish.BabyBird[] babyBirds = new Dish.BabyBird[numberOfBabyBirds];
         Dish dish = new Dish(initialWorms, dishCapacity);
@@ -45,9 +45,9 @@ class Dish {
         System.out.println("Baby bird ate a worm. Worms left: " + numberOfWorms);
 
         if(numberOfWorms == 0){
-            System.out.println("Baby bird ate the last worm! Waking up the parent bird to fill the dish.");
+            System.out.println("Baby bird ate the last worm! Waking up the parent bird to fill the dish.\n");
             notifyAll();
-        }
+        } 
     }    
 
     public synchronized void fill() {
@@ -71,7 +71,7 @@ class Dish {
             }
         }
         isBeingFilled = false;
-        System.out.println("Parent bird filled the dish. Waking up the baby birds.");
+        System.out.println("Parent bird filled the dish. Parent bird goes back to sleep.\n");
         notifyAll();
     }
 
