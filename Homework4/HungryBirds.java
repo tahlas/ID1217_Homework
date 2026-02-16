@@ -44,7 +44,8 @@ class Dish {
         System.out.println("Baby bird ate a worm. Worms left: " + numberOfWorms);
 
         if(numberOfWorms == 0){
-            System.out.println("Baby bird ate the last worm! Waking up the parent bird to fill the dish.\n");
+        
+            System.out.println("\nBaby bird ate the last worm! Waking up the parent bird to fill the dish.\n");
             notifyAll();
         } 
     }    
