@@ -51,7 +51,6 @@ class Dish {
 
     public synchronized void fill() {
         while(numberOfWorms > 0){
-            System.out.println("Parent bird waits for the dish to be empty.");
             try{
                 wait();
             } catch (InterruptedException e) {
