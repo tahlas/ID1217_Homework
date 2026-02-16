@@ -11,7 +11,7 @@ public class HungryBirds {
         Dish dish = new Dish(initialWorms, dishCapacity);
         Dish.ParentBird parentBird = dish.new ParentBird(dish);
         for (int i = 0; i < babyBirds.length; i++) {
-            babyBirds[i] = dish.new BabyBird(dish);
+            babyBirds[i] = dish.new BabyBird(dish, i);
         }
 
         parentBird.start();
@@ -31,7 +31,7 @@ class Dish {
         this.numberOfWorms = numberOfWorms;
     }
 
-    public synchronized void eat() {
+    public synchronized void eat(int id) {
         while(numberOfWorms == 0){
             System.out.println("Baby birds wait for the dish to be filled.");
             try{
@@ -41,11 +41,11 @@ class Dish {
             }
         }
         numberOfWorms--;
-        System.out.println("Baby bird ate a worm. Worms left: " + numberOfWorms);
+        System.out.println("Baby bird " + id +" ate a worm. Worms left: " + numberOfWorms);
 
         if(numberOfWorms == 0){
         
-            System.out.println("\nBaby bird ate the last worm! Waking up the parent bird to fill the dish.\n");
+            System.out.println("\nBaby bird " + id + " ate the last worm! Waking up the parent bird to fill the dish.\n");
             notifyAll();
         } 
     }    
@@ -99,14 +99,16 @@ class Dish {
     class BabyBird extends Thread {
 
         Dish dish;
+        int id;
 
-        public BabyBird(Dish dish) {
+        public BabyBird(Dish dish, int id) {
             this.dish = dish;
+            this.id = id;
         }
 
         public void run(){
             while(true){
-                dish.eat();
+                dish.eat(id);    
                 try {
                     int oneSecond = 1000;
                     sleep(oneSecond); // Simulate time taken to eat a worm
