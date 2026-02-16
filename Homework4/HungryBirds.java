@@ -1,4 +1,4 @@
-package Homework4;
+package ID1217_Homework.Homework4;
 
 public class HungryBirds {
 
@@ -25,7 +25,6 @@ public class HungryBirds {
 class Dish {
     private int numberOfWorms;
     private int capacity;
-    private boolean isBeingFilled = false;
 
     public Dish(int numberOfWorms, int capacity) {
         this.capacity = capacity;
@@ -33,7 +32,7 @@ class Dish {
     }
 
     public synchronized void eat() {
-        while(numberOfWorms == 0 || isBeingFilled){
+        while(numberOfWorms == 0){
             System.out.println("Baby bird waits for the dish to be filled.");
             try{
                 wait();
@@ -59,7 +58,7 @@ class Dish {
                 e.printStackTrace();
             }
         }
-        isBeingFilled = true;
+        //isBeingFilled = true;
         for(int i = 0; i < capacity; i++){
             numberOfWorms++;
             System.out.println("Parent bird adds a worm to the dish. Current number of worms: " + numberOfWorms);
@@ -70,8 +69,9 @@ class Dish {
                 e.printStackTrace();
             }
         }
-        isBeingFilled = false;
+        //isBeingFilled = false;
         System.out.println("Parent bird filled the dish. Parent bird goes back to sleep.\n");
+        //notify baby birds that the dish is filled
         notifyAll();
     }
 
