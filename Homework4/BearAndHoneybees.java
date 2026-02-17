@@ -1,4 +1,4 @@
-package ID1217_Homework.Homework4;
+package Homework4;
 
 public class BearAndHoneybees {
     /*
