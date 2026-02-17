@@ -2,15 +2,15 @@ package ID1217_Homework.Homework4;
 
 public class BearAndHoneybees {
     /*
-        The solution is not entirely fair because it is not guaranteed that all
-        threads will get a chance to run. Although, because there are only a few 
-        threads and each thread sleeps after performing its action, it is likely
-        that all threads will get a chance to run. 
-        
-        However, in a more complex 
-        system with many threads, it is possible that some threads may be starved 
-        and never get a chance to run.
-    */
+     * The solution is not entirely fair because it is not guaranteed that all
+     * threads will get a chance to run. Although, because there are only a few
+     * threads and each thread sleeps after performing its action, it is likely
+     * that all threads will get a chance to run.
+     * 
+     * However, in a more complex
+     * system with many threads, it is possible that some threads may be starved
+     * and never get a chance to run.
+     */
     public static void main(String[] args) {
         System.out.println("Starting the Bear and Honeybees simulation...");
         int initialPortionsOfHoney = 0;
@@ -40,14 +40,14 @@ class Pot {
     }
 
     public synchronized void eatHoney() {
-        while (portionsOfHoney <  capacity) {
+        while (portionsOfHoney < capacity) {
             try {
                 wait();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        for(int i = 0; i < capacity; i++) {
+        for (int i = 0; i < capacity; i++) {
             portionsOfHoney--;
             System.out.println("Bear is eating honey. Number of portions left: " + portionsOfHoney);
             try {
@@ -57,15 +57,11 @@ class Pot {
                 e.printStackTrace();
             }
         }
-
-        if (portionsOfHoney == 0) {
-            System.out.println("\nBear ate the last portion of honey! Waking up the honeybees to fill the pot.\n");
-            notifyAll();
-        }
-
+        System.out.println("\nBear ate the last portion of honey! Waking up the honeybees to fill the pot.\n");
+        notifyAll();
     }
 
-    public synchronized void fillHoney(int id) {
+    public synchronized void fillPot(int id) {
         while (portionsOfHoney == capacity) {
             try {
                 wait();
@@ -73,14 +69,14 @@ class Pot {
                 e.printStackTrace();
             }
         }
-        if (portionsOfHoney < capacity) {
-            portionsOfHoney++;
-            System.out.println("Honeybee " + id + " filled the pot with honey. Portions now: " + portionsOfHoney);
-            if (portionsOfHoney == capacity) {
-                System.out.println("\nThe pot is full! Honeybee " + id + " wakes up the bear to eat the honey.\n");
-                notifyAll();
-            }
+
+        portionsOfHoney++;
+        System.out.println("Honeybee " + id + " filled the pot with honey. Portions now: " + portionsOfHoney);
+        if (portionsOfHoney == capacity) {
+            System.out.println("\nThe pot is full! Honeybee " + id + " wakes up the bear to eat the honey.\n");
+            notifyAll();
         }
+
     }
 }
 
@@ -115,7 +111,7 @@ class Honeybee extends Thread {
 
     public void run() {
         while (true) {
-            pot.fillHoney(id);
+            pot.fillPot(id);
             try {
                 int oneSecond = 1000;
                 Thread.sleep(oneSecond); // Simulate time taken to fill honey
