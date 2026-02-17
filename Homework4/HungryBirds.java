@@ -1,7 +1,16 @@
 package ID1217_Homework.Homework4;
 
 public class HungryBirds {
-
+    /*
+        The solution is not entirely fair because it is not guaranteed that all
+        threads will get a chance to run. Although, because there are only a few 
+        threads and each thread sleeps after performing its action, it is likely
+        that all threads will get a chance to run. 
+        
+        However, in a more complex 
+        system with many threads, it is possible that some threads may be starved 
+        and never get a chance to run.
+    */
     public static void main(String[] args) {
         System.out.println("Starting the Hungry Birds simulation...");
         int initialWorms = 0;
