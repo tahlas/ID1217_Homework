@@ -1,6 +1,16 @@
 package ID1217_Homework.Homework4;
 
 public class BearAndHoneybees {
+    /*
+        The solution is not entirely fair because it is not guaranteed that all
+        threads will get a chance to run. Although, because there are only a few 
+        threads and each thread sleeps after performing its action, it is likely
+        that all threads will get a chance to run. 
+        
+        However, in a more complex 
+        system with many threads, it is possible that some threads may be starved 
+        and never get a chance to run.
+    */
     public static void main(String[] args) {
         System.out.println("Starting the Bear and Honeybees simulation...");
         int initialPortionsOfHoney = 0;
@@ -31,7 +41,6 @@ class Pot {
 
     public synchronized void eatHoney() {
         while (portionsOfHoney <  capacity) {
-            System.out.println("Bear is waiting for the pot to be filled with honey.");
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -57,7 +66,6 @@ class Pot {
     }
 
     public synchronized void fillHoney(int id) {
-        // TODO: multiple honeybees fill the pot with honey
         while (portionsOfHoney == capacity) {
             try {
                 wait();
@@ -69,7 +77,7 @@ class Pot {
             portionsOfHoney++;
             System.out.println("Honeybee " + id + " filled the pot with honey. Portions now: " + portionsOfHoney);
             if (portionsOfHoney == capacity) {
-                System.out.println("\nThe pot is full! Waking up the bear to eat the honey.\n");
+                System.out.println("\nThe pot is full! Honeybee " + id + " wakes up the bear to eat the honey.\n");
                 notifyAll();
             }
         }
