@@ -67,7 +67,6 @@ class Dish {
                 e.printStackTrace();
             }
         }
-        //isBeingFilled = true;
         for(int i = 0; i < capacity; i++){
             numberOfWorms++;
             System.out.println("Parent bird adds a worm to the dish. Current number of worms: " + numberOfWorms);
@@ -78,9 +77,7 @@ class Dish {
                 e.printStackTrace();
             }
         }
-        //isBeingFilled = false;
         System.out.println("Parent bird filled the dish. Parent bird goes back to sleep.\n");
-        //notify baby birds that the dish is filled
         notifyAll();
     }
 
@@ -126,17 +123,5 @@ class Dish {
                 } 
             }
         }
-
-        // public void run(){
-        // while(true){
-        // synchronized(d){
-        // if(d.value == 1){
-        // d.value = 0;
-        // System.out.println("Baby bird eats the food.");
-        // d.notifyAll();
-        // }
-        // }
-        // }
-        // }
     }
 }
