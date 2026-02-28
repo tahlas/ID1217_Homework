@@ -1,3 +1,4 @@
+package ClientServer;
 import java.rmi.*;
 
 public interface Teacher extends Remote {

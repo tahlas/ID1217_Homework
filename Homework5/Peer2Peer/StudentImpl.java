@@ -1,3 +1,5 @@
+package Peer2Peer;
+
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -24,5 +26,4 @@ public class StudentImpl extends UnicastRemoteObject implements Student {
     public int getPartnerIndex() throws RemoteException {
         return partnerIndex;
     }
-    
 }
