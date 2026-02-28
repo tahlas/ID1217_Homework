@@ -2,6 +2,7 @@ import java.rmi.*;
 
 public class Client {
 
+    
     public static void main(String[] args) {
         int host = 1099;
         //String rmiregURL = "rmi//" + host;
