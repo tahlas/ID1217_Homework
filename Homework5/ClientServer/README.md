@@ -1,0 +1,5 @@
+This assignemnt was implemented in Java using Java RMI. The solution consists of one teacher process that acts as the server and several student processes that act as clients. Each student sends a request to the teacher asking for a partner. The teacher stores the students in the order their requests arrived in. When all student have registered, the teacher pairs them into groups of two in the order they arrived in. If number if students is odd, the ast student is paired with himself. After the pairing is completed, the teacher notifies the waiting students, and each student retreives and prints its assigned partner.
+
+The classes "Server" and "TeacherImpl" are responsible for starting the server and handling the pairing logic. The classes "Client" and "StudentImpl" represent the student side. Synchronoization is used in the teacher so that students cannot get a partner before the pairing process has finished.
+
+In summary, the teacher is responsible for recieving all student requests, forming the groups, and returning the result, while each student only registers itself and then prints its assigned partner.
