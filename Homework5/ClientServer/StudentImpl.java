@@ -2,7 +2,7 @@ package ClientServer;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-public class StudentImpl extends UnicastRemoteObject implements Student {
+public class StudentImpl extends UnicastRemoteObject implements Student { // Implement the Student interface and extend UnicastRemoteObject to allow remote method invocation
     private int index;
     private int partnerIndex = -1;
 
